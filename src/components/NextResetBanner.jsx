@@ -1,6 +1,6 @@
 import React from 'react';
-import { CountdownDisplay } from './ui.jsx';
-import { formatDateTime, msRemaining } from '../utils/time.js';
+import { CountdownDisplay, OpenAGYBtn } from './ui.jsx';
+import { msRemaining } from '../utils/time.js';
 
 /**
  * Hero banner: highlights the very next credit to become available.
@@ -59,8 +59,9 @@ export default function NextResetBanner({ emails, countdowns }) {
               {typeLabel(first.type)}
             </span>
           </div>
-          <div className="mt-1">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <CountdownDisplay ms={countdowns[key(first)]} />
+            <OpenAGYBtn className="text-xs py-1 px-2.5" />
           </div>
         </div>
 

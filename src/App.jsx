@@ -132,26 +132,31 @@ export default function App() {
     setFinishedModal({ email, creditType });
   }
 
-  function handleMarkFinishedSave({ emailId, creditType, finishedAt, resetAt, notes }) {
-    // Update email state
-    setEmails(prev => prev.map(em => {
-      if (em.id !== emailId) return em;
-      return {
-        ...em,
-        [creditType]: { status: 'waiting', resetAt, notes },
-      };
-    }));
+  function handleMarkFinishedSave(saves) {
+    // saves is an array: [{ emailId, creditType, finishedAt, resetAt, notes }, ...]
+    let updatedEmails = emails;
+    let updatedHistory = history;
 
-    // Save to history
-    const entry = {
-      email: emails.find(e => e.id === emailId)?.email || emailId,
-      creditType,
-      finishedAt,
-      resetAt,
-      notes,
-    };
-    const newHistory = addHistoryEntry(history, entry);
-    setHistory(newHistory);
+    for (const { emailId, creditType, finishedAt, resetAt, notes } of saves) {
+      // Update email state
+      updatedEmails = updatedEmails.map(em => {
+        if (em.id !== emailId) return em;
+        return { ...em, [creditType]: { status: 'waiting', resetAt, notes } };
+      });
+
+      // Add history entry
+      const entry = {
+        email: updatedEmails.find(e => e.id === emailId)?.email || emailId,
+        creditType,
+        finishedAt,
+        resetAt,
+        notes,
+      };
+      updatedHistory = addHistoryEntry(updatedHistory, entry);
+    }
+
+    setEmails(updatedEmails);
+    setHistory(updatedHistory);
     setFinishedModal(null);
   }
 

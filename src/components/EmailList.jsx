@@ -1,13 +1,11 @@
 import React from 'react';
-import { StatusBadge, CountdownDisplay, Btn } from './ui.jsx';
-import { formatDateTime, msRemaining } from '../utils/time.js';
+import { StatusBadge, CountdownDisplay, Btn, OpenAGYBtn, CopyEmailBtn } from './ui.jsx';
+import { formatDateTime } from '../utils/time.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Single credit-type cell (used in both table and card views)
+// Single credit-type cell — unchanged logic, kept as-is
 // ─────────────────────────────────────────────────────────────────────────────
 function CreditCell({ slot, ms, onMarkFinished }) {
-  const isReady = !slot?.resetAt || ms === 0 || slot?.status === 'ready';
-
   return (
     <div className="flex flex-col gap-1 min-w-0">
       <StatusBadge status={slot?.status || 'ready'} resetAt={slot?.resetAt} />
@@ -25,9 +23,35 @@ function CreditCell({ slot, ms, onMarkFinished }) {
           className="text-xs px-2 py-1"
           onClick={onMarkFinished}
         >
-          {slot?.status === 'waiting' ? '✏️ Edit' : '⏱ Mark Finished'}
+          {slot?.status === 'waiting' ? '✏️ Edit Reset' : '⏱ Mark Finished'}
         </Btn>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email header: address + copy icon (shared between table and card)
+// ─────────────────────────────────────────────────────────────────────────────
+function EmailHeader({ email, isNext }) {
+  return (
+    <div className="flex flex-col gap-0.5 min-w-0">
+      {isNext && (
+        <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">
+          🔥 Next Available
+        </span>
+      )}
+      {/* Email row with inline copy button */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="font-semibold text-white text-sm break-all">{email.email}</span>
+        <CopyEmailBtn email={email.email} className="shrink-0" />
+      </div>
+      {email.displayName && (
+        <span className="text-xs text-gray-400">{email.displayName}</span>
+      )}
+      {email.notes && (
+        <span className="text-xs text-gray-600 italic">{email.notes}</span>
+      )}
     </div>
   );
 }
@@ -42,19 +66,8 @@ function EmailTableRow({ email, countdowns, isNext, onMarkFinished, onEdit, onDe
   return (
     <tr className={`border-b border-gray-800 transition-colors ${isNext ? 'bg-orange-500/5' : 'hover:bg-gray-800/40'}`}>
       {/* Email */}
-      <td className="px-4 py-3">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          {isNext && (
-            <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">🔥 Next Available</span>
-          )}
-          <span className="font-medium text-white text-sm truncate max-w-[200px]">{email.email}</span>
-          {email.displayName && (
-            <span className="text-xs text-gray-500 truncate">{email.displayName}</span>
-          )}
-          {email.notes && (
-            <span className="text-xs text-gray-600 italic truncate">{email.notes}</span>
-          )}
-        </div>
+      <td className="px-4 py-3 max-w-[240px]">
+        <EmailHeader email={email} isNext={isNext} />
       </td>
 
       {/* Gemini */}
@@ -78,6 +91,7 @@ function EmailTableRow({ email, countdowns, isNext, onMarkFinished, onEdit, onDe
       {/* Actions */}
       <td className="px-4 py-3">
         <div className="flex flex-col gap-1.5">
+          <OpenAGYBtn className="text-xs px-2 py-1 text-sm" />
           <Btn variant="ghost" className="text-xs" onClick={() => onEdit(email)}>
             ✏️ Edit
           </Btn>
@@ -101,19 +115,12 @@ function EmailCard({ email, countdowns, isNext, onMarkFinished, onEdit, onDelete
     <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
       isNext ? 'border-orange-500/40 bg-orange-500/5' : 'border-gray-700/50 bg-gray-900/50'
     }`}>
-      {/* Header */}
+      {/* Header: email + quick management actions */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col min-w-0">
-          {isNext && (
-            <span className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-0.5">🔥 Next Available</span>
-          )}
-          <span className="font-semibold text-white text-sm truncate">{email.email}</span>
-          {email.displayName && <span className="text-xs text-gray-500">{email.displayName}</span>}
-          {email.notes && <span className="text-xs text-gray-600 italic">{email.notes}</span>}
-        </div>
-        <div className="flex gap-1 shrink-0">
-          <Btn variant="ghost" className="text-xs px-2 py-1" onClick={() => onEdit(email)}>✏️</Btn>
-          <Btn variant="danger" className="text-xs px-2 py-1" onClick={() => onDelete(email)}>🗑️</Btn>
+        <EmailHeader email={email} isNext={isNext} />
+        <div className="flex gap-1 shrink-0 mt-0.5">
+          <Btn variant="ghost" className="text-xs px-2 py-1" onClick={() => onEdit(email)} title="Edit">✏️</Btn>
+          <Btn variant="danger" className="text-xs px-2 py-1" onClick={() => onDelete(email)} title="Delete">🗑️</Btn>
         </div>
       </div>
 
@@ -127,6 +134,11 @@ function EmailCard({ email, countdowns, isNext, onMarkFinished, onEdit, onDelete
           <p className="text-xs font-bold text-sky-400 uppercase tracking-wider">Other / AGY</p>
           <CreditCell slot={email.other} ms={oMs} onMarkFinished={() => onMarkFinished(email, 'other')} />
         </div>
+      </div>
+
+      {/* Primary actions row */}
+      <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-700/40">
+        <OpenAGYBtn className="flex-1 justify-center text-xs" />
       </div>
     </div>
   );

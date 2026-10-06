@@ -1,5 +1,69 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { formatDuration, msRemaining } from '../utils/time.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ✏️  CONFIGURE: Antigravity URL — change this one line if the URL ever changes
+// ─────────────────────────────────────────────────────────────────────────────
+export const AGY_URL = 'https://antigravity.dev';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Open Antigravity button
+// Opens the AGY site in a new tab. No passwords, no automation.
+// ─────────────────────────────────────────────────────────────────────────────
+export function OpenAGYBtn({ className = '' }) {
+  return (
+    <a
+      href={AGY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+        bg-violet-600 hover:bg-violet-500 text-white transition-all ${className}`}
+    >
+      <span>🚀</span> Open Antigravity
+    </a>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Copy Email button — copies email string to clipboard, shows "Copied!" toast
+// ─────────────────────────────────────────────────────────────────────────────
+export function CopyEmailBtn({ email, className = '' }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = email;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [email]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? 'Copied!' : `Copy ${email}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+        ${copied
+          ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/40'
+          : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600/50'
+        } ${className}`}
+    >
+      {copied ? '✅ Copied!' : '📋 Copy Email'}
+    </button>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Status badge
